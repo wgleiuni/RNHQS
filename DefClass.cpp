@@ -59,9 +59,10 @@ void RK4::initial()
         for (j=0;j<Nw;j++)
         {
             *(V0_+i)+=-p_*(exp(-pow((*(x+i)+(2*j+1)*ws_/2.0)/wx_,6.0))+exp(-pow((*(x+i)-(2*j+1)*ws_/2.0)/wx_,6.0)));
-            *(V1_+i)+=-p_*mu_*(exp(-pow((*(x+i)+(2*j+1)*ws_/2.0)/wx_,6.0))-exp(-pow((*(x+i)-(2*j+1)*ws_/2.0)/wx_,6.0)));
-            *(VI_+i)+=-p_*alpha_*(exp(-pow((*(x+i)+(2*j+1)*ws_/2.0)/wx_,6.0))-exp(-pow((*(x+i)-(2*j+1)*ws_/2.0)/wx_,6.0)));
+            *(V1_+i)+=-p_*mu_*pow(-1,j)*(exp(-pow((*(x+i)+(2*j+1)*ws_/2.0)/wx_,6.0))-exp(-pow((*(x+i)-(2*j+1)*ws_/2.0)/wx_,6.0)));
+            *(VI_+i)+=-p_*alpha_*pow(-1,j)*(exp(-pow((*(x+i)+(2*j+1)*ws_/2.0)/wx_,6.0))-exp(-pow((*(x+i)-(2*j+1)*ws_/2.0)/wx_,6.0)));
         }
+//        std::cout << *(x+i) << " " << *(V0_+i) << " " << *(V1_+i) << " " << *(VI_+i) << std::endl;
     }
 
     char *uplo="U";
@@ -74,11 +75,11 @@ void RK4::initial()
     double epsout;
     int loop;
     double *emin=new double [1];
-    *emin=-1.0;
+    *emin=-3.0;
     double *emax=new double [1];
-    *emax=1.0;
+    *emax=*emin+1.0;
     int *m0=new int [1];
-    *m0=101;
+    *m0=N_;
     double *e=new double[*m0];
     double *outx=new double [*m0*N_];
     int *m=new int [1];
@@ -162,7 +163,12 @@ void RK4::initial()
 
 //    dfeast_sbev(uplo,n,&kla,a,lda,fpm,&epsout,&loop,emin,emax,m0,e,outx,m,res,info);
     dfeast_scsrev(uplo,n,a,ia,ja,fpm,&epsout,&loop,emin,emax,m0,e,outx,m,res,info);
-    
+    std::cout << "-----eigenvalue-----" << std::endl;
+    for (i=0;i<*m;i++)
+    {
+        std::cout << *(e+i) << std::endl;
+    }
+
     if (1==2)
     {
 
@@ -190,7 +196,7 @@ void RK4::initial()
     }
 
     V_=new std::complex<double> [N_];
-    
+
     for (i=0;i<4;i++)
     {
         K_[i]=new std::complex<double> [N_];
@@ -281,15 +287,15 @@ void RNHQS::disp()
 {
 }
 
-RNHQS::RNHQS(int tN, int bMode, double h, int N, int numdt)
+RNHQS::RNHQS(int tN, int bMode, double h, int N, double wx, double phi, int numdt)
 {
     t_=0.0;
     bMode_=bMode;
     h_=h;
     numdt_=numdt;
     N_=N;
-    k_=1.0;ws_=3.2;wx_=0.3;p_=3.0;mu_=0.07;alpha_=0.014;f_=0.25;w_=0.2168;
-    phi_=0.0;
+    k_=1.0;ws_=3.2;wx_=wx;p_=3.0;mu_=0.07;alpha_=0.014;f_=0.25;w_=0.2168;
+    phi_=phi;
     RK4::initial();
 
     char filename[20];
