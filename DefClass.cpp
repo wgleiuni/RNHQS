@@ -34,11 +34,12 @@ RK4::RK4()
 void RK4::initial()
 {
     double *x=new double [N_];
-    int i;
+    int i,j,Nw;
     
+    Nw=10;
     for (i=0;i<N_;i++)
     {
-        *(x+i)=(-4.0+8.0/(N_-1)*i)*ws_;
+        *(x+i)=(-1.0*Nw+2.0*Nw/(N_-1)*i)*ws_;
     }
     dx_=*(x+1)-*(x+0);
 
@@ -48,18 +49,28 @@ void RK4::initial()
 
     for (i=0;i<N_;i++)
     {
-        *(V0_+i)=-p_*(exp(-pow((*(x+i)+ws_/1.0)/wx_,6.0))+exp(-pow((*(x+i)-ws_/1.0)/wx_,6.0)));
-        *(V1_+i)=-p_*mu_*(exp(-pow((*(x+i)+ws_/1.0)/wx_,6.0))-exp(-pow((*(x+i)-ws_/1.0)/wx_,6.0)));
-        *(VI_+i)=-p_*alpha_*(exp(-pow((*(x+i)+ws_/1.0)/wx_,6.0))-exp(-pow((*(x+i)-ws_/1.0)/wx_,6.0)));
+        *(V0_+i)=0.0;
+        *(V1_+i)=0.0;
+        *(VI_+i)=0.0;
+    }
+
+    for (i=0;i<N_;i++)
+    {
+        for (j=0;j<Nw;j++)
+        {
+            *(V0_+i)+=-p_*(exp(-pow((*(x+i)+(2*j+1)*ws_/2.0)/wx_,6.0))+exp(-pow((*(x+i)-(2*j+1)*ws_/2.0)/wx_,6.0)));
+            *(V1_+i)+=-p_*mu_*(exp(-pow((*(x+i)+(2*j+1)*ws_/2.0)/wx_,6.0))-exp(-pow((*(x+i)-(2*j+1)*ws_/2.0)/wx_,6.0)));
+            *(VI_+i)+=-p_*alpha_*(exp(-pow((*(x+i)+(2*j+1)*ws_/2.0)/wx_,6.0))-exp(-pow((*(x+i)-(2*j+1)*ws_/2.0)/wx_,6.0)));
+        }
     }
 
     char *uplo="U";
     int *n=new int [1];
     *n=N_;
-    int kla=1;
-    double *a=new double [N_*2];
-    int *lda=new int [1];
-    *lda=2;
+//    int kla=1;
+//    double *a=new double [N_*2];
+//    int *lda=new int [1];
+//    *lda=2;
     double epsout;
     int loop;
     double *emin=new double [1];
@@ -76,16 +87,81 @@ void RK4::initial()
     I_=std::complex<double> (0,1);
 
     dV_=-1/(2.0*k_)/pow(dx_,2.0);
-    for (i=0;i<N_;i++)
+
+    double *a;
+    int *ia,*ja;
+
+    if (bMode_==1)
     {
-        a[i*2]=dV_;
-        a[i*2+1]=(V0_[i]+1/k_/pow(dx_,2.0));
+        a=new double [2*N_-1];
+        ia=new int [N_+1];
+        ja=new int [2*N_-1];
+
+        for (i=0;i<N_-1;i++)
+        {
+            *(a+2*i)=V0_[i]-2.0*dV_;
+            *(a+2*i+1)=dV_;
+        }
+        *(a+2*N_-2)=V0_[N_-1]-2.0*dV_;
+
+        for (i=0;i<N_;i++)
+        {
+            *(ia+i)=2*i+1;
+        }
+        *(ia+N_)=2*N_;
+
+        for (i=0;i<N_-1;i++)
+        {
+            *(ja+2*i)=i+1;
+            *(ja+2*i+1)=i+2;
+        }
+        *(ja+2*N_-2)=N_;
     }
+    else if (bMode_==2)
+    {
+        a=new double [2*N_];
+        ia=new int [N_+1];
+        ja=new int [2*N_];
+
+        for (i=1;i<N_-1;i++)
+        {
+            *(a+2*i+1)=V0_[i]-2.0*dV_;
+            *(a+2*i+1+1)=dV_;
+        }
+        *a=V0_[0]-2.0*dV_;
+        *(a+1)=dV_;
+        *(a+2)=dV_;
+        *(a+2*N_-1)=V0_[N_-1]-2.0*dV_;
+
+        for (i=1;i<N_;i++)
+        {
+            *(ia+i)=2*i+1+1;
+        }
+        *ia=1;
+        *(ia+N_)=2*N_+1;
+
+        for (i=1;i<N_-1;i++)
+        {
+            *(ja+2*i+1)=i+1;
+            *(ja+2*i+1+1)=i+2;
+        }
+        *ja=1;
+        *(ja+1)=2;
+        *(ja+2)=N_;
+        *(ja+2*N_-1)=N_;
+    }
+
+    //    for (i=0;i<N_;i++)
+    //    {
+    //        a[i*2]=dV_;
+    //        a[i*2+1]=(V0_[i]+1/k_/pow(dx_,2.0));
+//    }
 
     int *fpm=new int [128];
     feastinit(fpm);
 
-    dfeast_sbev(uplo,n,&kla,a,lda,fpm,&epsout,&loop,emin,emax,m0,e,outx,m,res,info);
+//    dfeast_sbev(uplo,n,&kla,a,lda,fpm,&epsout,&loop,emin,emax,m0,e,outx,m,res,info);
+    dfeast_scsrev(uplo,n,a,ia,ja,fpm,&epsout,&loop,emin,emax,m0,e,outx,m,res,info);
     
     if (1==2)
     {
@@ -126,12 +202,21 @@ void RK4::dE(std::complex<double> *E,std::complex<double> *k,double t)
 {
     int i;
     getV(t);
-    *k=(V_[0]**E+dV_**(E+1))/I_;
+
+    if (bMode_==1)
+    {
+        *k=(V_[0]**E+dV_**(E+1))/I_;
+        *(k+N_-1)=(V_[N_-1]**(E+N_-1)+dV_**(E+N_-2))/I_;
+    }
+    else if (bMode_==2)
+    {
+        *k=(V_[0]**E+dV_*(*(E+1)+*(E+N_-1)))/I_;
+        *(k+N_-1)=(V_[N_-1]**(E+N_-1)+dV_*(*(E+N_-2)+*E))/I_;
+    }
     for (i=1;i<N_-1;i++)
     {
         *(k+i)=(V_[i]**(E+i)+dV_*(*(E+i-1)+*(E+i+1)))/I_;
     }
-    *(k+N_-1)=(V_[N_-1]**(E+N_-1)+dV_**(E+N_-2))/I_;
 }
 
 void RK4::getV(double t)
@@ -176,7 +261,7 @@ void RNHQS::go()
     {
         t_=h_*i;
         RK4::onestep();
-        if (i%10000==0)
+        if (i%1000==0)
         {
             record();
         }
@@ -196,9 +281,10 @@ void RNHQS::disp()
 {
 }
 
-RNHQS::RNHQS(int tN, double h, int N, int numdt)
+RNHQS::RNHQS(int tN, int bMode, double h, int N, int numdt)
 {
     t_=0.0;
+    bMode_=bMode;
     h_=h;
     numdt_=numdt;
     N_=N;

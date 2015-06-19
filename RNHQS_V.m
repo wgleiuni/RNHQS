@@ -13,9 +13,9 @@ N=101;
 x=linspace(-2,2,N)*ws;
 dx=x(end)-x(end-1);
 
-V0=-p*(exp(-((x+ws/1)/wx).^6)+exp(-((x-ws/1)/wx).^6));
-V1=-p*mu_*(exp(-((x+ws/1)/wx).^6)-exp(-((x-ws/1)/wx).^6));
-VI=-p*alpha_*(exp(-((x+ws/1)/wx).^6)-exp(-((x-ws/1)/wx).^6));
+V0=-p*(exp(-((x+ws/2)/wx).^6)+exp(-((x-ws/2)/wx).^6));
+V1=-p*mu_*(exp(-((x+ws/2)/wx).^6)-exp(-((x-ws/2)/wx).^6));
+VI=-p*alpha_*(exp(-((x+ws/2)/wx).^6)-exp(-((x-ws/2)/wx).^6));
 F=sin(w*t)+f*sin(2*w*t+phi_);
 V=V0+V1.*F+1i*VI;
 E=conj(E');

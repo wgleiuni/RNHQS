@@ -27,8 +27,8 @@
 
 int main (int argc, char *argv[])
 {
-    RNHQS one(3,0.00001,401,1);
-//    RNHQS one(3,0.0001,101,1);
+    RNHQS one(4,2,0.0005,1001,10000000);         /* bMode=2: Period Boundary */
+//    RNHQS one(3,1,0.0005,1001,1);
     one.go();
 
     return 0;

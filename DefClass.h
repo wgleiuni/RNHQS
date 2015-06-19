@@ -34,13 +34,13 @@ class RK4
         double k_,ws_,wx_,p_,mu_,alpha_,f_,w_,phi_;
         double dx_,t_,h_;
         double *V0_,*V1_,*VI_,dV_;
-        int N_;
+        int N_,bMode_;
 };
 
 class RNHQS : protected RK4
 {
     public:
-        RNHQS(int,double,int,int);
+        RNHQS(int,int,double,int,int);
         void go();
         void record();
         void disp();

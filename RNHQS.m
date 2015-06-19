@@ -18,7 +18,7 @@ N=101;
 x=linspace(-2,2,N)*ws;
 dx=x(end)-x(end-1);
 
-V0=-p*(exp(-((x+ws/1)/wx).^6)+exp(-((x-ws/1)/wx).^6));
+V0=-p*(exp(-((x+ws/2)/wx).^6)+exp(-((x-ws/2)/wx).^6));
 V=diag(V0+1/k*1/dx^2);
 V(1:end-1,2:end)=V(1:end-1,2:end)+diag(ones(N-1,1)*(-1/(2*k)*1/dx^2));
 V(2:end,1:end-1)=V(2:end,1:end-1)+diag(ones(N-1,1)*(-1/(2*k)*1/dx^2));
