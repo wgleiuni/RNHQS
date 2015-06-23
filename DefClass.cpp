@@ -75,9 +75,9 @@ void RK4::initial()
     double epsout;
     int loop;
     double *emin=new double [1];
-    *emin=-3.0;
+    *emin=-10.0;
     double *emax=new double [1];
-    *emax=*emin+1.0;
+    *emax=0.0;
     int *m0=new int [1];
     *m0=N_;
     double *e=new double[*m0];
@@ -163,10 +163,20 @@ void RK4::initial()
 
 //    dfeast_sbev(uplo,n,&kla,a,lda,fpm,&epsout,&loop,emin,emax,m0,e,outx,m,res,info);
     dfeast_scsrev(uplo,n,a,ia,ja,fpm,&epsout,&loop,emin,emax,m0,e,outx,m,res,info);
-    std::cout << "-----eigenvalue-----" << std::endl;
-    for (i=0;i<*m;i++)
+    
+    if (*m<2)
     {
-        std::cout << *(e+i) << std::endl;
+        std::cout << "not enough eigenvalues" << std::endl;
+        exit (EXIT_FAILURE);
+    }
+    else
+    {
+        for (i=0;i<2;i++)
+        {
+            std::cout << "-----eigenvalue-----" << std::endl;
+            std::cout << *(e+i) << std::endl;
+        }
+
     }
 
     if (1==2)
