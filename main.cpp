@@ -28,7 +28,7 @@
 int main (int argc, char *argv[])
 {
     int tN,bMode,N,numdt;
-    double h,wx,phi;
+    double h,alpha,wx,phi;
 
     if (argc>1)
     {
@@ -36,12 +36,13 @@ int main (int argc, char *argv[])
         bMode=(int)atof(argv[2]);
         h=(double)atof(argv[3]);
         N=(int)atof(argv[4]);
-        wx=(double)atof(argv[5]);
-        phi=(double)atof(argv[6]);
-        numdt=(int)atof(argv[7]);
+        alpha=(double)atof(argv[5]);
+        wx=(double)atof(argv[6]);
+        phi=(double)atof(argv[7]);
+        numdt=(int)atof(argv[8]);
     }
 
-    RNHQS one(tN,bMode,h,N,wx,phi,numdt);         /* bMode=2: Period Boundary */
+    RNHQS one(tN,bMode,h,N,alpha,wx,phi,numdt);         /* bMode=2: Period Boundary */
 //    RNHQS one(4,1,0.0005,1001,1);
     one.go();
 

@@ -171,9 +171,9 @@ void RK4::initial()
     }
     else
     {
+        std::cout << "-----eigenvalue-----" << std::endl;
         for (i=0;i<2;i++)
         {
-            std::cout << "-----eigenvalue-----" << std::endl;
             std::cout << *(e+i) << std::endl;
         }
 
@@ -297,14 +297,15 @@ void RNHQS::disp()
 {
 }
 
-RNHQS::RNHQS(int tN, int bMode, double h, int N, double wx, double phi, int numdt)
+RNHQS::RNHQS(int tN, int bMode, double h, int N, double alpha, double wx, double phi, int numdt)
 {
     t_=0.0;
     bMode_=bMode;
     h_=h;
     numdt_=numdt;
     N_=N;
-    k_=1.0;ws_=3.2;wx_=wx;p_=3.0;mu_=0.07;alpha_=0.014;f_=0.25;w_=0.2168;
+    alpha_=alpha;
+    k_=1.0;ws_=3.2;wx_=wx;p_=3.0;mu_=0.07;f_=0.25;w_=0.2168;
     phi_=phi;
     RK4::initial();
 
