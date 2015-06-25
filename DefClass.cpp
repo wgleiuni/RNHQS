@@ -34,12 +34,14 @@ RK4::RK4()
 void RK4::initial()
 {
     double *x=new double [N_];
+    xp_=new double [N_];
     int i,j,Nw;
     
     Nw=10;
     for (i=0;i<N_;i++)
     {
         *(x+i)=(-1.0*Nw+2.0*Nw/(N_-1)*i)*ws_;
+        *(xp_+i)=-1.0*Nw+2.0*Nw/(N_-1)*i;
     }
     dx_=*(x+1)-*(x+0);
 
@@ -59,7 +61,7 @@ void RK4::initial()
         for (j=0;j<Nw;j++)
         {
             *(V0_+i)+=-p_*(exp(-pow((*(x+i)+(2*j+1)*ws_/2.0)/wx_,6.0))+exp(-pow((*(x+i)-(2*j+1)*ws_/2.0)/wx_,6.0)));
-            *(V1_+i)+=-p_*mu_*pow(-1,j)*(exp(-pow((*(x+i)+(2*j+1)*ws_/2.0)/wx_,6.0))-exp(-pow((*(x+i)-(2*j+1)*ws_/2.0)/wx_,6.0)));
+            *(V1_+i)+=-p_*mu_*pow(1,j)*(exp(-pow((*(x+i)+(2*j+1)*ws_/2.0)/wx_,6.0))+exp(-pow((*(x+i)-(2*j+1)*ws_/2.0)/wx_,6.0)));
             *(VI_+i)+=-p_*alpha_*pow(-1,j)*(exp(-pow((*(x+i)+(2*j+1)*ws_/2.0)/wx_,6.0))-exp(-pow((*(x+i)-(2*j+1)*ws_/2.0)/wx_,6.0)));
         }
 //        std::cout << *(x+i) << " " << *(V0_+i) << " " << *(V1_+i) << " " << *(VI_+i) << std::endl;
@@ -270,6 +272,27 @@ void RK4::onestep()
     }
 }
 
+void RK4::getxp()
+{
+    int i;
+    meanx_=0.0*I_;
+    meanp_=0.0*I_;
+    normE_=0.0;
+    for (i=0;i<N_;i++)
+    {
+        meanx_+=std::conj(*(E_+i))**(xp_+i)**(E_+i);
+        normE_+=std::norm(*(E_+i));
+    }
+    meanx_=meanx_/normE_;
+
+    for (i=0;i<N_-1;i++)
+    {
+        meanp_+=std::conj(*(E_+i))*(*(E_+i+1)-*(E_+i))/dx_*(-1.0*I_);
+    }
+    meanp_+=std::conj(*(E_+N_-1))*(*E-*(E_+N_-1))/dx_*(-1.0*I_);
+    meanp_=meanp_/normE_;
+}
+
 void RNHQS::go()
 {
     int i;
@@ -287,9 +310,24 @@ void RNHQS::go()
 void RNHQS::record()
 {
     int i;
-    for (i=0;i<N_;i++)
+    if (oMode_==1)
     {
+        for (i=0;i<N_;i++)
+        {
+            outE_ << std::norm(*(E_+i)) << std::endl;
+        }
+    }
+    else if (oMode_==2)
+    {
+        RK4::getxp();
+        outxp_ << std::real(meanx_) << "\t" << std::real(meanp_) << "\t" << std::imag(meanp_) << "\t" << normE_ << std::endl;
+    }
+    else if (oMode_==3)
+    {
+        RK4::getxp();
         outE_ << std::norm(*(E_+i)) << std::endl;
+        outxp_ << std::real(meanx_) << "\t" << std::real(meanp_) << "\t" << std::imag(meanp_) << "\t" << normE_ << std::endl;
+
     }
 }
 
@@ -297,21 +335,39 @@ void RNHQS::disp()
 {
 }
 
-RNHQS::RNHQS(int tN, int bMode, double h, int N, double alpha, double wx, double phi, int numdt)
+RNHQS::RNHQS(int tN, int bMode, int oMode, double h, int N, double alpha, double wx, double f, double phi, int numdt)
 {
     t_=0.0;
     bMode_=bMode;
+    oMode_=oMode;
     h_=h;
     numdt_=numdt;
     N_=N;
     alpha_=alpha;
-    k_=1.0;ws_=3.2;wx_=wx;p_=3.0;mu_=0.07;f_=0.25;w_=0.2168;
+    f_=f;
+    k_=1.0;ws_=3.2;wx_=wx;p_=3.0;mu_=0.07;w_=0.2168;
     phi_=phi;
     RK4::initial();
 
     char filename[20];
+    char filename1[20];
 
-    sprintf(filename,"EF%d.txt",tN);
+    if (oMode_==1)
+    {
+        sprintf(filename,"EF%d.txt",tN);
+        outE_.open(filename,std::ostream::out);
+    }
+    else if (oMode_==2)
+    {
+        sprintf(filename1,"XP%d.txt",tN);
+        outxp_.open(filename1,std::ostream::out);
+    }
+    else if (oMode_==3)
+    {
+        sprintf(filename,"EF%d.txt",tN);
+        outE_.open(filename,std::ostream::out);
+        sprintf(filename1,"XP%d.txt",tN);
+        outxp_.open(filename1,std::ostream::out);
+    }
 
-    outE_.open(filename,std::ostream::out);
 }
