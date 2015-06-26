@@ -204,7 +204,12 @@ void RK4::initial()
     E=new std::complex<double> [N_];
     for (i=0;i<N_;i++)
     {
-        *(E_+i)=(-*(outx+i)-*(outx+i+N_))/sqrt(2.0);
+        *(E_+i)=0;
+        for (j=0;j<nI_;j++)
+        {
+            *(E_+i)+=*(outx+i+j*N_);
+        }
+        *(E_+i)=*(E_+i)/sqrt(nI_);
     }
 
     V_=new std::complex<double> [N_];
@@ -418,7 +423,7 @@ void RNHQS::disp()
 {
 }
 
-RNHQS::RNHQS(int tN, int bMode, int oMode, double h, int N, double alpha, double wx, double f, double phi, int numdt)
+RNHQS::RNHQS(int tN, int bMode, int oMode, double h, int N, double alpha, double wx, double f, double phi, int numdt, int nI)
 {
     t_=0.0;
     bMode_=bMode;
@@ -430,6 +435,7 @@ RNHQS::RNHQS(int tN, int bMode, int oMode, double h, int N, double alpha, double
     f_=f;
     k_=1.0;ws_=3.2;wx_=wx;p_=3.0;mu_=0.07;w_=0.2168;
     phi_=phi;
+    nI_=nI;
     RK4::initial();
 
     char filename[20];

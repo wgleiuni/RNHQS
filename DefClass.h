@@ -35,7 +35,7 @@ class RK4
         double k_,ws_,wx_,p_,mu_,alpha_,f_,w_,phi_,normE_;
         double dx_,t_,h_;
         double *V0_,*V1_,*VI_,dV_,*xp_;
-        int N_,bMode_,oMode_;
+        int N_,bMode_,oMode_,nI_;
 
         void LP_initital();
         void LP_onestep();
@@ -45,7 +45,7 @@ class RK4
 class RNHQS : protected RK4
 {
     public:
-        RNHQS(int,int,int,double,int,double,double,double,double,int);
+        RNHQS(int,int,int,double,int,double,double,double,double,int,int);
         void go();
         void record();
         void disp();

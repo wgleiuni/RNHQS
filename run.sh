@@ -11,8 +11,9 @@ alpha=0.000001
 wx=0.3
 f=0.25;
 phi=0
-numdt=5000000
-./a.out $tN $bMode $oMode $h $N $alpha $wx $f $phi $numdt
+numdt=50000
+nI=1
+./a.out $tN $bMode $oMode $h $N $alpha $wx $f $phi $numdt $nI
 
 if [ -e "EF$tN.mat" ]
 then
