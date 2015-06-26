@@ -37,7 +37,7 @@ void RK4::initial()
     xp_=new double [N_];
     int i,j,Nw;
     
-    Nw=10;
+    Nw=N_/100;
     for (i=0;i<N_;i++)
     {
         *(x+i)=(-1.0*Nw+2.0*Nw/(N_-1)*i)*ws_;
@@ -61,7 +61,7 @@ void RK4::initial()
         for (j=0;j<Nw;j++)
         {
             *(V0_+i)+=-p_*(exp(-pow((*(x+i)+(2*j+1)*ws_/2.0)/wx_,6.0))+exp(-pow((*(x+i)-(2*j+1)*ws_/2.0)/wx_,6.0)));
-            *(V1_+i)+=-p_*mu_*pow(1,j)*(exp(-pow((*(x+i)+(2*j+1)*ws_/2.0)/wx_,6.0))+exp(-pow((*(x+i)-(2*j+1)*ws_/2.0)/wx_,6.0)));
+            *(V1_+i)+=-p_*mu_*pow(-1,j)*(exp(-pow((*(x+i)+(2*j+1)*ws_/2.0)/wx_,6.0))-exp(-pow((*(x+i)-(2*j+1)*ws_/2.0)/wx_,6.0)));
             *(VI_+i)+=-p_*alpha_*pow(-1,j)*(exp(-pow((*(x+i)+(2*j+1)*ws_/2.0)/wx_,6.0))-exp(-pow((*(x+i)-(2*j+1)*ws_/2.0)/wx_,6.0)));
         }
 //        std::cout << *(x+i) << " " << *(V0_+i) << " " << *(V1_+i) << " " << *(VI_+i) << std::endl;
@@ -173,12 +173,12 @@ void RK4::initial()
     }
     else
     {
-        std::cout << "-----eigenvalue-----" << std::endl;
-        for (i=0;i<2;i++)
-        {
-            std::cout << *(e+i) << std::endl;
-        }
-
+//        std::cout << "-----eigenvalue-----" << std::endl;
+//        for (i=0;i<2;i++)
+//        {
+//            std::cout << *(e+i) << std::endl;
+//        }
+//
     }
 
     if (1==2)
@@ -285,22 +285,101 @@ void RK4::getxp()
     }
     meanx_=meanx_/normE_;
 
-    for (i=0;i<N_-1;i++)
+    for (i=1;i<N_-1;i++)
     {
-        meanp_+=std::conj(*(E_+i))*(*(E_+i+1)-*(E_+i))/dx_*(-1.0*I_);
+        meanp_+=std::conj(*(E_+i))*(*(E_+i+1)-*(E_+i-1))/(2.0*dx_)*(-1.0*I_);
     }
-    meanp_+=std::conj(*(E_+N_-1))*(*E-*(E_+N_-1))/dx_*(-1.0*I_);
+    meanp_+=std::conj(*(E_+N_-1))*(*E-*(E_+N_-2))/(2.0*dx_)*(-1.0*I_);
+    meanp_+=std::conj(*E_)*(*(E_+1)-*(E_+N_-1))/(2.0*dx_)*(-1.0*I_);
     meanp_=meanp_/normE_;
+}
+
+void RK4::LP_initital()
+{
+    int i;
+    LPE11_=new double [N_];
+    LPE12_=new double [N_];
+    LPE21_=new double [N_];
+    LPE22_=new double [N_];
+    LPV1_=new double [N_];
+    LPV2_=new double [N_];
+    LPtemp_=new double [N_];
+    LPtemp2_=new double [N_];
+    for (i=0;i<N_;i++)
+    {
+        *(LPE11_+i)=std::real(*(E_+i));
+        *(LPE12_+i)=std::real(*(E_+i));
+        *(LPE21_+i)=std::imag(*(E_+i));
+        *(LPE22_+i)=std::imag(*(E_+i));
+        *(LPV2_+i)=*(VI_+i);
+    }
+}
+
+void RK4::LP_onestep()
+{
+    int i;
+    double hk,dx2;
+    hk=h_/k_;
+    dx2=1.0/pow(dx_,2.0);
+
+    for (i=0;i<N_;i++)
+    {
+        *(LPV1_+i)=*(V0_+i)+V1_[i]*(sin(w_*t_)+f_*sin(2.0*w_*t_+phi_));
+    }
+
+    if (bMode_==1)
+    {
+        *LPtemp_=*LPE11_-hk*(*(LPE22_+1)-2.0**LPE22_)*dx2+2.0*h_**LPV1_**LPE22_+2.0*h_**LPV2_**LPE12_;
+        *(LPtemp_+N_-1)=*(LPE11_+N_-1)-hk*(*(LPE22_+N_-2)-2.0**(LPE22_+N_-1))*dx2+2.0*h_**(LPV1_+N_-1)**(LPE22_+N_-1)+2.0*h_**(LPV2_+N_-1)**(LPE12_+N_-1);
+    }
+    else if (bMode_==2)
+    {
+        *LPtemp_=*LPE11_-hk*(*(LPE22_+1)+*(LPE22_+N_-1)-2.0**LPE22_)*dx2+2.0*h_**LPV1_**LPE22_+2.0*h_**LPV2_**LPE12_;
+        *(LPtemp_+N_-1)=*(LPE11_+N_-1)-hk*(*(LPE22_)+*(LPE22_+N_-2)-2.0**(LPE22_+N_-1))*dx2+2.0*h_**(LPV1_+N_-1)**(LPE22_+N_-1)+2.0*h_**(LPV2_+N_-1)**(LPE12_+N_-1);
+    }
+    for (i=1;i<N_-1;i++)
+    {
+        *(LPtemp_+i)=*(LPE11_+i)-hk*(*(LPE22_+i+1)+*(LPE22_+i-1)-2.0**(LPE22_+i))*dx2+2.0*h_**(LPV1_+i)**(LPE22_+i)+2.0*h_**(LPV2_+i)**(LPE12_+i);
+    }
+    for (i=0;i<N_;i++)
+    {
+        *(LPtemp2_+i)=*(LPtemp_+i);
+    }
+    
+    if (bMode_==1)
+    {
+        *LPtemp_=*LPE21_+hk*(*(LPE12_+1)-2.0**LPE12_)*dx2-2.0*h_**LPV1_**LPE12_+2.0*h_**LPV2_**LPE22_;
+        *(LPtemp_+N_-1)=*(LPE21_+N_-1)+hk*(*(LPE12_+N_-2)-2.0**(LPE12_+N_-1))*dx2-2.0*h_**(LPV1_+N_-1)**(LPE12_+N_-1)+2.0*h_**(LPV2_+N_-1)**(LPE22_+N_-1);
+    }
+    else if (bMode_==2)
+    {
+        *LPtemp_=*LPE21_+hk*(*(LPE12_+1)+*(LPE12_+N_-1)-2.0**LPE12_)*dx2-2.0*h_**LPV1_**LPE12_+2.0*h_**LPV2_**LPE22_;
+        *(LPtemp_+N_-1)=*(LPE21_+N_-1)+hk*(*(LPE12_)+*(LPE12_+N_-2)-2.0**(LPE12_+N_-1))*dx2-2.0*h_**(LPV1_+N_-1)**(LPE12_+N_-1)+2.0*h_**(LPV2_+N_-1)**(LPE22_+N_-1);
+    }
+    for (i=1;i<N_-1;i++)
+    {
+        *(LPtemp_+i)=*(LPE21_+i)+hk*(*(LPE12_+i+1)+*(LPE12_+i-1)-2.0**(LPE12_+i))*dx2-2.0*h_**(LPV1_+i)**(LPE12_+i)+2.0*h_**(LPV2_+i)**(LPE22_+i);
+    }
+    for (i=0;i<N_;i++)
+    {
+        *(LPE11_+i)=*(LPE12_+i);
+        *(LPE12_+i)=*(LPtemp2_+i);
+        *(LPE21_+i)=*(LPE22_+i);
+        *(LPE22_+i)=*(LPtemp_+i);
+        *(E_+i)=*(LPE12_+i)+I_**(LPE22_+i);
+    }
 }
 
 void RNHQS::go()
 {
     int i;
+    RK4::LP_initital();
     for (i=0;i<numdt_;i++)
     {
         t_=h_*i;
-        RK4::onestep();
-        if (i%1000==0)
+//        RK4::onestep();
+        RK4::LP_onestep();
+        if (i%10000==0)
         {
             record();
         }
@@ -325,7 +404,11 @@ void RNHQS::record()
     else if (oMode_==3)
     {
         RK4::getxp();
-        outE_ << std::norm(*(E_+i)) << std::endl;
+        for (i=0;i<N_;i++)
+        {
+            outE_ << std::norm(*(E_+i)) << std::endl;
+//            outE_ << std::real(*(V_+i)) << std::endl;
+        }
         outxp_ << std::real(meanx_) << "\t" << std::real(meanp_) << "\t" << std::imag(meanp_) << "\t" << normE_ << std::endl;
 
     }

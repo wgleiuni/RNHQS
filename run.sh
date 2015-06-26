@@ -1,17 +1,17 @@
 #!/bin/bash
 
-tN=11
+tN=12
 bMode=2
 # 1: closed; 2: period 
 oMode=3
 # 1: E; 2: x & p; 3: E & x & p
-h=0.0005
+h=0.002
 N=1001
-alpha=0.0001
+alpha=0.000001
 wx=0.3
-f=0.0;
+f=0.25;
 phi=0
-numdt=500000
+numdt=5000000
 ./a.out $tN $bMode $oMode $h $N $alpha $wx $f $phi $numdt
 
 if [ -e "EF$tN.mat" ]

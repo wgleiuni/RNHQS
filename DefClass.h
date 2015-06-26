@@ -36,6 +36,10 @@ class RK4
         double dx_,t_,h_;
         double *V0_,*V1_,*VI_,dV_,*xp_;
         int N_,bMode_,oMode_;
+
+        void LP_initital();
+        void LP_onestep();
+        double *LPE11_,*LPE12_,*LPE21_,*LPE22_,*LPV1_,*LPV2_,*LPtemp_,*LPtemp2_;
 };
 
 class RNHQS : protected RK4
