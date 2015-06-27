@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename:  DefClass.cpp
- *
- *    Description:  
- *
- *        Version:  1.0
- *        Created:  06/17/2015 03:25:49 PM
- *       Revision:  none
- *       Compiler:  icpc
- *
- *         Author:  Dr. Fritz Mehner (fgm), mehner.fritz@fh-swf.de
- *   Organization:  FH Südwestfalen, Iserlohn
- *
- * =====================================================================================
- */
-
 #include <iostream>
 #include <stdlib.h>
 #include <math.h>
