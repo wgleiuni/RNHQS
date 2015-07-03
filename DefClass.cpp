@@ -270,7 +270,7 @@ void RK4::getxp()
         meanx_+=std::conj(*(E_+i))**(xp_+i)**(E_+i);
         normE_+=std::norm(*(E_+i));
     }
-    meanx_=meanx_/normE_;
+    meanx_=meanx_/normE_/ws_;
 
     for (i=1;i<N_-1;i++)
     {
@@ -278,7 +278,7 @@ void RK4::getxp()
     }
     meanp_+=std::conj(*(E_+N_-1))*(*E-*(E_+N_-2))/(2.0*dx_)*(-1.0*I_);
     meanp_+=std::conj(*E_)*(*(E_+1)-*(E_+N_-1))/(2.0*dx_)*(-1.0*I_);
-    meanp_=meanp_/normE_;
+    meanp_=meanp_/normE_/ws_;
 }
 
 void RK4::LP_initital()
