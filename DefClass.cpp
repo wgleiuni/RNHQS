@@ -22,8 +22,8 @@ void RK4::initial()
     Nw=N_/100;
     for (i=0;i<N_;i++)
     {
-        *(x+i)=(-1.0*Nw+2.0*Nw/(N_-1)*i)*ws_;
-        *(xp_+i)=-1.0*Nw+2.0*Nw/(N_-1)*i;
+        *(x+i)=(-1.0*Nw+2.0*Nw/(N_-0)*i)*ws_;
+        *(xp_+i)=-1.0*Nw+2.0*Nw/(N_-0)*i;
     }
     dx_=*(x+1)-*(x+0);
 
@@ -43,7 +43,7 @@ void RK4::initial()
         for (j=0;j<Nw;j++)
         {
             *(V0_+i)+=-p_*(exp(-pow((*(x+i)+(2*j+1)*ws_/2.0)/wx_,6.0))+exp(-pow((*(x+i)-(2*j+1)*ws_/2.0)/wx_,6.0)));
-            *(V1_+i)+=-p_*mu_*pow(-1,j)*(exp(-pow((*(x+i)+(2*j+1)*ws_/2.0)/wx_,6.0))-exp(-pow((*(x+i)-(2*j+1)*ws_/2.0)/wx_,6.0)));
+            *(V1_+i)+=-p_*mu_*pow(1,j)*(exp(-pow((*(x+i)+(2*j+1)*ws_/2.0)/wx_,6.0))+exp(-pow((*(x+i)-(2*j+1)*ws_/2.0)/wx_,6.0)));
             *(VI_+i)+=-p_*alpha_*pow(-1,j)*(exp(-pow((*(x+i)+(2*j+1)*ws_/2.0)/wx_,6.0))-exp(-pow((*(x+i)-(2*j+1)*ws_/2.0)/wx_,6.0)));
         }
 //        std::cout << *(x+i) << " " << *(V0_+i) << " " << *(V1_+i) << " " << *(VI_+i) << std::endl;
@@ -363,13 +363,13 @@ void RNHQS::go()
     RK4::LP_initital();
     for (i=0;i<numdt_;i++)
     {
-        t_=h_*i;
-//        RK4::onestep();
-        RK4::LP_onestep();
         if (i%10000==0)
         {
             record();
         }
+        t_=h_*i;
+//        RK4::onestep();
+        RK4::LP_onestep();
     }
 }
 
@@ -405,7 +405,7 @@ void RNHQS::disp()
 {
 }
 
-RNHQS::RNHQS(int tN, int bMode, int oMode, double h, int N, double alpha, double wx, double f, double phi, int numdt, int nI)
+RNHQS::RNHQS(int tN, int bMode, int oMode, double h, int N, double mu, double alpha, double wx, double f, double phi, int numdt, int nI)
 {
     t_=0.0;
     bMode_=bMode;
@@ -413,9 +413,10 @@ RNHQS::RNHQS(int tN, int bMode, int oMode, double h, int N, double alpha, double
     h_=h;
     numdt_=numdt;
     N_=N;
+    mu_=mu;
     alpha_=alpha;
     f_=f;
-    k_=1.0;ws_=3.2;wx_=wx;p_=3.0;mu_=0.07;w_=0.2168;
+    k_=1.0;ws_=3.2;wx_=wx;p_=3.0;w_=0.2168;
     phi_=phi;
     nI_=nI;
     RK4::initial();

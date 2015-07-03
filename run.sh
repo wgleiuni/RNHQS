@@ -6,14 +6,15 @@ bMode=2
 oMode=3
 # 1: E; 2: x & p; 3: E & x & p
 h=0.002
-N=1001
-alpha=0.000001
+N=1000
+mu=0.07
+alpha=0.0001
 wx=0.3
 f=0.25;
 phi=0
-numdt=50000
+numdt=5000000
 nI=1
-./a.out $tN $bMode $oMode $h $N $alpha $wx $f $phi $numdt $nI
+./a.out $tN $bMode $oMode $h $N $mu $alpha $wx $f $phi $numdt $nI
 
 if [ -e "EF$tN.mat" ]
 then

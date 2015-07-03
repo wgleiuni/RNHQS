@@ -27,7 +27,7 @@ class RK4
 class RNHQS : protected RK4
 {
     public:
-        RNHQS(int,int,int,double,int,double,double,double,double,int,int);
+        RNHQS(int,int,int,double,int,double,double,double,double,double,int,int);
         void go();
         void record();
         void disp();
