@@ -1,22 +1,19 @@
 #!/bin/bash
 
 tN=12
-bMode=1
-# 1: closed; 2: period 
-oMode=3
-# 1: E; 2: x & p; 3: E & x & p
+bMode=3
+# 1: closed; 2: period; 3: mean
+oMode=1
 h=0.002
-N=101
-mu=0.07
-alpha=0.014
-wx=0.3
-f=0.0
-phi=0
-numdt=100000
-nI=2
+gama=0.1
+v=0.0501
+A=1
+omega=10
+f=0.25
+phi=0.5
+numdt=20000000
 W=0.0
-w=0.2168
-./a.out $tN $bMode $oMode $h $N $mu $alpha $wx $f $phi $numdt $nI $W $w
+./a.out $tN $bMode $oMode $h $gama $v $A $omega $f $phi $numdt $W
 
 if [ -e "EF$tN.mat" ]
 then

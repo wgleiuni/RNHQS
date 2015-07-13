@@ -6,35 +6,39 @@ h=0.0001;
 %%
 phi_=0;
 p=3;
-mu_=0.07;
-alpha_=0.014;
+mu_=0.1;
+alpha_=0.00001;
 ws=3.2;
-wx=1;
+wx=0.3;
 f=0.25;
-w=0.2168;
+w=1;
 k=1;
 
-N=1001;
-x=linspace(-10,10,N)*ws;
+N=1000;
+Nw=10;
+%x=linspace(-Nw,Nw,N)*ws;
+x=(-Nw+2*Nw/N*(1:N))*ws;
 dx=x(end)-x(end-1);
 
-Nw=10;
 V0=x*0;
+V1=x*0;
 VI=x*0;
 for j=1:Nw
     V0=V0-p*(exp(-((x+ws*(2*j-1)/2)/wx).^6)+exp(-((x-ws*(2*j-1)/2)/wx).^6));
+    V1=V1-(1)^j*p*mu_*(exp(-((x+ws*(2*j-1)/2)/wx).^6)+exp(-((x-ws*(2*j-1)/2)/wx).^6));
     VI=VI-p*alpha_*((-1)^(j)*exp(-((x+ws*(2*j-1)/2)/wx).^6)-(-1)^(j)*exp(-((x-ws*(2*j-1)/2)/wx).^6));
 end
-V=diag(V0+1/k*1/dx^2);
+V=diag(V0+1/k*1/dx^2+0*1i*VI);
 V(1:end-1,2:end)=V(1:end-1,2:end)+diag(ones(N-1,1)*(-1/(2*k)*1/dx^2));
 V(2:end,1:end-1)=V(2:end,1:end-1)+diag(ones(N-1,1)*(-1/(2*k)*1/dx^2));
-if 1==2
-    V(1,end)=-1/(2*k)*1/dx^2);
-    V(end,1)=-1/(2*k)*1/dx^2);
+if 1==1
+    V(1,end)=-1/(2*k)*1/dx^2;
+    V(end,1)=-1/(2*k)*1/dx^2;
 end
 [vec,ee]=eig(V);
 ee=diag(ee);
 E=(vec(:,1)+vec(:,2))/sqrt(2);
+disp(max(abs(imag(ee))))
 %%
 step=100000;
 tE=zeros(101,step);
