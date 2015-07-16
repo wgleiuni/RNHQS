@@ -1,18 +1,18 @@
 #!/bin/bash
 
 tN=12
-bMode=1
+bMode=2
 # 1: closed; 2: period 
 oMode=3
 # 1: E; 2: x & p; 3: E & x & p
 h=0.002
-N=101
+N=1000
 mu=0.07
-alpha=0.014
+alpha=0.00005
 wx=0.3
 f=0.0
 phi=0
-numdt=100000
+numdt=10000000
 nI=2
 W=0.0
 w=0.2168

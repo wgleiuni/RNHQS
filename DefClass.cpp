@@ -346,7 +346,7 @@ void RK4::LP_onestep()
 
     for (i=0;i<N_;i++)
     {
-        *(LPV1_+i)=*(V0_+i)+V1_[i]*(0.0+1.0*sin(w_*t_)+f_*sin(2.0*w_*t_+phi_))+1.0*W_*RK4::getDisorder();
+        *(LPV1_+i)=*(V0_+i)+V1_[i]*(0.0+1.0*sin(w_*t_)+f_*sin(2.0*w_*t_+M_PI*phi_))+1.0*W_*RK4::getDisorder();
         *(LPV2_+i)=*(LPV2nD_+i)+0.0*W_*RK4::getDisorder();
     }
 
@@ -400,7 +400,7 @@ void RNHQS::go()
     disp();
     for (i=0;i<numdt_;i++)
     {
-        if (i%10000==0)
+        if (i%1000==0)
         {
             record();
         }
