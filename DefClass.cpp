@@ -666,3 +666,153 @@ double RNHQS_mean::getDis()
         return *disW_;
     }
 }
+
+
+RNHQS_ZB::RNHQS_ZB(int tN,double h,double sigma,double ri,double w,double phi,int numdt)
+{
+    tN_=tN;
+    h_=h;
+    sigma_=sigma;
+    ri_=ri;
+    omega_=w;
+    phi_=phi;
+    numdt_=numdt;
+    N_=200;
+
+    t_=0.0;
+
+    char filename[20];
+    sprintf(filename,"ZB%d.txt",tN);
+    out_.open(filename,std::ostream::out);
+
+    a1_=new double [N_];
+    a2_=new double [N_];
+    X_=new double [N_];
+    ta1_=new double [N_];
+    ta2_=new double [N_];
+    int i;
+    for (i=0;i<4;i++)
+    {
+        *(k_+i)=new double [N_];
+        *(l_+i)=new double [N_];
+    }
+
+    double w_d=6.0;
+    for (i=0;i<N_;i++)
+    {
+        *(X_+i)=-N_/2.0+1.0/2.0+i;
+        *(a1_+i)=exp(-pow(*(X_+i)/w_d,2.0))*cos(M_PI**(X_+i)/2.0);
+        *(a2_+i)=exp(-pow(*(X_+i)/w_d,2.0))*sin(M_PI**(X_+i)/2.0);
+    }
+    
+}
+
+void RNHQS_ZB::go()
+{
+    int ntime;
+
+//    RNHQS_ZB::disp();
+    for (ntime=0;ntime<numdt_;ntime++)
+    {
+        t_+=h_;
+        RNHQS_ZB::onestep();
+        if (ntime%1==0)
+        {
+            RNHQS_ZB::record();
+        }
+    }
+}
+
+void RNHQS_ZB::onestep()
+{
+    int i,j;
+    for (i=0;i<4;i++)
+    {
+        if (i==0)
+        {
+            RNHQS_ZB::da(t_,a1_,a2_,*(k_+i),*(l_+i));
+        }
+        else if (i==1 || i==2)
+        {
+            for (j=0;j<N_;j++)
+            {
+                *(ta1_+j)=*(a1_+j)+h_/2.0**(*(k_+i-1)+j);
+                *(ta2_+j)=*(a2_+j)+h_/2.0**(*(l_+i-1)+j);
+            }
+            RNHQS_ZB::da(t_+h_/2.0,ta1_,ta2_,*(k_+i),*(l_+i));
+        }
+        else if (i==3)
+        {
+            for (j=0;j<N_;j++)
+            {
+                *(ta1_+j)=*(a1_+j)+h_**(*(k_+i-1)+j);
+                *(ta2_+j)=*(a2_+j)+h_**(*(l_+i-1)+j);
+            }
+            RNHQS_ZB::da(t_+h_,ta1_,ta2_,*(k_+i),*(l_+i));
+        }
+    }
+    for (j=0;j<N_;j++)
+    {
+        *(a1_+j)+=h_/6.0*(*(*k_+j)+2.0**(*(k_+1)+j)+2.0**(*(k_+2)+j)+*(*(k_+3)+j));
+        *(a2_+j)+=h_/6.0*(*(*l_+j)+2.0**(*(l_+1)+j)+2.0**(*(l_+2)+j)+*(*(l_+3)+j));
+    }
+}
+
+void RNHQS_ZB::da(double t,double *a1,double *a2,double *k,double *l)
+{
+    int i;
+    double sigmai;
+
+    sigmai=sigma_*ri_*sin(omega_*t+M_PI*phi_);
+
+    for (i=1;i<N_-1;i++)
+    {
+        *(k+i)=-(*(a2+i+1)+*(a2+i-1))+pow(-1.0,i)*(sigma_**(a2+i)+sigmai**(a1+i));
+        *(l+i)=(*(a1+i+1)+*(a1+i-1))+pow(-1.0,i+1)*(sigma_**(a1+i)-sigmai**(a2+i));
+    }
+
+    *(k+0)=-(*(a2+1)+*(a2+N_-1))+pow(-1.0,0)*(sigma_**(a2+0)+sigmai**(a1+0));
+    *(l+0)=(*(a1+1)+*(a1+N_-1))+pow(-1.0,0+1)*(sigma_**(a1+0)-sigmai**(a2+0));
+
+    *(k+N_-1)=-(*(a2+0)+*(a2+N_-2))+pow(-1.0,N_-1)*(sigma_**(a2+N_-1)+sigmai**(a1+N_-1));
+    *(l+N_-1)=(*(a1+0)+*(a1+N_-2))+pow(-1.0,N_)*(sigma_**(a1+N_-1)-sigmai**(a2+N_-1));
+}
+
+void RNHQS_ZB::getMean()
+{
+    int i;
+    outMo_=0.0;
+    outX_=0.0;
+    for (i=0;i<N_;i++)
+    {
+        outMo_+=pow(*(a1_+i),2.0)+pow(*(a2_+i),2.0);
+        outX_+=*(X_+i)*(pow(*(a1_+i),2.0)+pow(*(a2_+i),2.0));
+    }
+
+    double rest;
+    for (i=N_-10;i<N_-1;i++)
+    {
+        rest+=pow(*(a1_+i),2.0)+pow(*(a2_+i),2.0);
+    }
+
+    if (rest/outMo_>0.001)
+    {
+        std::cout << "waveguide not long enough" << std::endl;
+    }
+}
+
+void RNHQS_ZB::record()
+{
+    RNHQS_ZB::getMean();
+    out_ << outMo_ << "\t" << outX_ << std::endl;
+}
+
+void RNHQS_ZB::disp()
+{
+    std::cout << "time step = " << h_ << std::endl;
+    std::cout << "sigma = " << sigma_ << std::endl;
+    std::cout << "kappa = " << 1 << std::endl;
+    std::cout << "omega = " << omega_ << std::endl;
+    std::cout << "omegai = " << ri_ << std::endl;
+    std::cout << "phi = " << phi_ << std::endl;
+}

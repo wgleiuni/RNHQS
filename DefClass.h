@@ -60,4 +60,23 @@ class RNHQS_mean
 
         VSLStreamStatePtr stream_;
 };
+
+class RNHQS_ZB
+{
+    public:
+        RNHQS_ZB(int,double,double,double,double,double,int);
+        void go();
+        void record();
+        void disp();
+    private:
+        void onestep();
+        void getMean();
+        void da(double,double*,double*,double*,double*);
+
+        std::ofstream out_;
+        int tN_,numdt_,N_;
+        double h_,sigma_,ri_,omega_,phi_,t_;
+        double *a1_,*a2_,*k_[4],*l_[4],*ta1_,*ta2_,*X_;
+        double outMo_,outX_;
+};
 #endif

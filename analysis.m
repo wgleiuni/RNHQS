@@ -126,3 +126,55 @@ sigr=2.1;
 sigi=ri*sigr*sin(w*z)*1i;
 meanz=1./(2*(sigr+sigi)).*sin(2*(sigr+0*sigi).*z);
 figure;plot(abs(meanz))
+
+%%
+kappa=1;
+sigma=2.1;
+ri=0.5;
+w=20;
+w0=1;
+k=linspace(-pi,pi,1000);
+Gk2=exp(-pi^2*w0^2/2*k.^2);
+step=10000;
+tT=zeros(1000,step+1);
+i=1;
+for z=0:1/step:1
+    ep=sqrt((sigma*(1+ri*sin(w*z)*1i)).^2+kappa^2.*k.^2);
+    
+    
+    %%tt=(-1i*kappa*k*z.*(norm(ep).*norm(cos(ep*z))+ep.^2*norm(sin(ep*z)))+1i*kappa*k.*conj(ep).*sin(ep*z).*cos(conj(ep)*z))./(ep.^2.*conj(ep)).*k./ep;
+    tT(:,i)=tt;
+    i=i+1;
+end
+figure;
+mesh(imag(tT))
+
+%%
+numdt=20000;
+h=0.0063;
+step=11;
+[omegav,phiv]=meshgrid(linspace(0,10,step),linspace(0,2,step));
+omegav=omegav';
+phiv=phiv';
+ZB_Mo=zeros(numdt,step^2);
+ZB_X=zeros(numdt,step^2);
+for i = 0:step-1
+    for j = 0:step-1
+        ti=i*step+j;
+        temp=load(['ZB',num2str(ti),'.txt']);
+        ZB_Mo(:,ti+1)=temp(:,1);
+        ZB_X(:,ti+1)=temp(:,2);
+    end
+end
+maxZB_Mo=max(ZB_Mo);
+
+%%
+figure
+set(gcf,'position',[2000 400 560 840],'color','w')
+subplot(3,1,1)
+mesh(omegav,phiv,log(reshape(maxZB_Mo,11,11)))
+xlabel('w');
+ylabel('phi')
+subplot(3,1,2)
+
+subplot(3,1,3)
