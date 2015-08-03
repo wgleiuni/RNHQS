@@ -1,0 +1,67 @@
+kappa=1;
+sigma=2.1;
+ri=0.5;
+w0=105e-6;
+d=16e-6;
+w=4;
+w0=w0/d;
+kstep=500;
+k=linspace(-24/w0,24/w0,kstep);
+Gk2=exp(-k.^2*w0^2/16);
+step=10000*w*2;
+tT=zeros(kstep,step+1);
+tT2=zeros(kstep,step+1);
+tT3=zeros(kstep,step+1);
+i=1;
+tstep=1000;
+I=RNHQS_ZB_I(tstep,sigma,ri,w,kappa,k);
+I2=RNHQS_ZB_I2(tstep,sigma,ri,w,kappa,k);
+dt=2*pi/w/tstep;
+I0=I(end,:);
+ep20=I2(end,:);
+
+for z=0:1:step
+    Sigma=sigma;
+    ep=sqrt((sigma^2+kappa^2.*k.^2));
+    t1=mod(z,tstep);
+    t2=floor(z/tstep);
+    II=t2*I0+I(t1+1,:);
+    ep2=t2*ep20+I2(t1+1,:);
+    tt=Sigma.^2.*kappa./ep.^3.*sin(II).*cos(conj(II)).*Gk2.^2;
+    tt2=kappa^3*k.^2.*(abs(cos(II)).^2+abs(sin(II)).^2)./abs(ep).*Gk2.^2.*ep2;
+    tt3=(abs(cos(II)).^2+abs(sin(II)).^2+2*real(kappa.*k./ep.*sin(II).*cos(conj(II)))).*Gk2.^2;
+    tT(:,i)=tt;
+    tT2(:,i)=tt2;
+    tT3(:,i)=tt3;
+    i=i+1;
+end
+%%
+if 1==2
+    figure;
+    mesh(real(tT))
+    figure;
+    mesh(real(tT2))
+    figure;
+    mesh(real(tT3))
+    figure;
+    plot((0:step)*dt,real(4*sum(tT)))
+    figure;
+    plot((0:step)*dt,real(4*sum(0*tT+tT2)))
+    figure;
+    plot((0:step)*dt,real(4*sum(tT3)))
+    figure;
+    plot((0:step)*dt,real(4*sum(1*tT+1*tT2)./sum(tT3)))
+end
+%%
+if 1==1
+    figure
+    set(gcf,'position',[2000 400 560 840],'color','w')
+    subplot(4,1,1)
+    plot((0:step)*dt,real(4*sum(tT)))
+    subplot(4,1,2)
+    plot((0:step)*dt,real(4*sum(0*tT+tT2)))
+    subplot(4,1,3)
+    plot((0:step)*dt,real(2*sum(tT3)))
+    subplot(4,1,4)
+    plot((0:step)*dt,real(4*sum(1*tT+1*tT2)./sum(tT3)))
+end
