@@ -789,15 +789,24 @@ void RNHQS_ZB::getMean()
         outX_+=*(X_+i)*(pow(*(a1_+i),2.0)+pow(*(a2_+i),2.0));
     }
 
-    double rest;
-    for (i=N_-10;i<N_-1;i++)
+    static bool wasExecuted = false;
+    if (wasExecuted)
     {
-        rest+=pow(*(a1_+i),2.0)+pow(*(a2_+i),2.0);
+        return;
     }
-
-    if (rest/outMo_>0.001)
+    else
     {
-        std::cout << tN_ << ": waveguide not long enough" << std::endl;
+        double rest;
+        for (i=N_-10;i<N_-1;i++)
+        {
+            rest+=pow(*(a1_+i),2.0)+pow(*(a2_+i),2.0);
+        }
+
+        if (rest/outMo_>0.001)
+        {
+            std::cout << tN_ << ": waveguide not long enough" << std::endl;
+        }
+        wasExecuted = true;
     }
 }
 
