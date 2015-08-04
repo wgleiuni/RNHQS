@@ -797,7 +797,7 @@ void RNHQS_ZB::getMean()
 
     if (rest/outMo_>0.001)
     {
-        std::cout << "waveguide not long enough" << std::endl;
+        std::cout << tN_ << ": waveguide not long enough" << std::endl;
     }
 }
 
