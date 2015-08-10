@@ -4,17 +4,19 @@
 #include <complex>
 #include <string>
 #include <fstream>
+#include <time.h>
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-#define Nblock 512
-#define NThreadPerBlock 1
+#define Nblock 16
+#define NThreadPerBlock 64
 #define NTotal Nblock*NThreadPerBlock
+#define N_ 200
 class RNHQS_ZB
 {
     public:
         __device__ RNHQS_ZB();
-        __device__ void initial(int,double,double,double,double,double,int);
+        __device__ void initial(int,double,double,double,double,double,int,double*,double*,double*,double*,double*,double*,double*);
         __device__ void go(double *);
         __device__ void record(double *);
     private:
@@ -22,11 +24,11 @@ class RNHQS_ZB
         __device__ void getMean();
         __device__ void da(double,double*,double*,double*,double*);
 
-        int tN_,numdt_,N_,i_;
+        int tN_,numdt_,i_;
+//        int N_;
         double h_,sigma_,ri_,omega_,phi_,t_;
         double *a1_,*a2_,*k_[4],*l_[4],*ta1_,*ta2_,*X_;
         double outMo_,outX_;
-        double *own_;
 };
 
 __device__
@@ -35,7 +37,7 @@ RNHQS_ZB::RNHQS_ZB()
 }
 
 __device__
-void RNHQS_ZB::initial(int tN,double h,double sigma,double ri,double w,double phi,int numdt)
+void RNHQS_ZB::initial(int tN,double h,double sigma,double ri,double w,double phi,int numdt,double* X,double* a1,double* a2,double* ta1,double* ta2,double* k,double* l)
 {
     tN_=tN;
     h_=h;
@@ -44,23 +46,33 @@ void RNHQS_ZB::initial(int tN,double h,double sigma,double ri,double w,double ph
     omega_=w;
     phi_=phi;
     numdt_=numdt;
-    N_=200;
+//    N_=200;
     i_=0;
 
     t_=0.0;
 
-    a1_=(double *)malloc(N_*sizeof(double));
-    a2_=(double *)malloc(N_*sizeof(double));
-    X_=(double *)malloc(N_*sizeof(double));
-    ta1_=(double *)malloc(N_*sizeof(double));
-    ta2_=(double *)malloc(N_*sizeof(double));
+//    a1_=(double *)malloc(N_*sizeof(double));
+//    a2_=(double *)malloc(N_*sizeof(double));
+//    X_=(double *)malloc(N_*sizeof(double));
+//    ta1_=(double *)malloc(N_*sizeof(double));
+//    ta2_=(double *)malloc(N_*sizeof(double));
+    a1_=a1;
+    a2_=a2;
+    X_=X;
+    ta1_=ta1;
+    ta2_=ta2;
     int i;
+//    for (i=0;i<4;i++)
+//    {
+//        *(k_+i)=new double [N_];
+//        *(l_+i)=new double [N_];
+//    }
+
     for (i=0;i<4;i++)
     {
-        *(k_+i)=new double [N_];
-        *(l_+i)=new double [N_];
+        *(k_+i)=k+N_*i;
+        *(l_+i)=l+N_*i;
     }
-
     double w_d=6.0;
     for (i=0;i<N_;i++)
     {
@@ -180,18 +192,30 @@ void RNHQS_ZB::record(double *_outMo)
 {
     RNHQS_ZB::getMean();
     *(_outMo+i_)=outMo_;
-//    *(_outMo+i_)=1.0;
     i_++;
 }
 
 __global__ void sRNHQS_ZB(int tN,double h,double sigma,double ri,double* omega,double phi,int numdt,double* _outMo,size_t pitch)
 {
-    int i=blockIdx.x;
+    int i=blockIdx.x*blockDim.x+threadIdx.x;
 
     RNHQS_ZB one;
-    one.initial(tN,h,sigma,ri,*(omega+i),phi,numdt);
+//    __shared__ double a1[N_];
+//    __shared__ double a2[N_];
+//    __shared__ double X[N_];
+//    __shared__ double ta1[N_];
+//    __shared__ double ta2[N_];
+//    __shared__ double k[4*N_];
+//    __shared__ double l[4*N_];
+    double a1[N_];
+    double a2[N_];
+    double X[N_];
+    double ta1[N_];
+    double ta2[N_];
+    double k[4*N_];
+    double l[4*N_];
+    one.initial(tN,h,sigma,ri,*(omega+i),phi,numdt,X,a1,a2,ta1,ta2,k,l);
     one.go(_outMo+pitch/sizeof(double)*i);
-
 }
 
 int main (int argc, char *argv[])
@@ -209,7 +233,7 @@ int main (int argc, char *argv[])
 //    size_t s1,s2,s3;
 //    cudaDeviceSetLimit(cudaLimitStackSize,4*1024*sizeof(double));
     cudaError cE;
-    cE=cudaDeviceSetLimit(cudaLimitMallocHeapSize,32*1024*1024*sizeof(double));
+    cE=cudaDeviceSetLimit(cudaLimitMallocHeapSize,16*1024*1024*sizeof(double));
     if (cE!=0) std::cout << cE << std::endl;
 //    cudaDeviceSetLimit(cudaLimitPrintfFifoSize,1024*1024*sizeof(double));
 //    cudaDeviceGetLimit(&s1,cudaLimitStackSize);
@@ -269,6 +293,8 @@ int main (int argc, char *argv[])
             }
         }
     }
+
+    std::cout << "time used = " << clock()/CLOCKS_PER_SEC << std::endl;
 
     return 0;
 }
