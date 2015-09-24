@@ -711,12 +711,12 @@ void RNHQS_ZB::go()
 {
     int ntime;
 
-//    RNHQS_ZB::disp();
+    RNHQS_ZB::disp();
     for (ntime=0;ntime<numdt_;ntime++)
     {
         t_+=h_;
         RNHQS_ZB::onestep();
-        if (ntime%1==0)
+        if (ntime%2==0 && ntime>numdt_*0.75)
         {
             RNHQS_ZB::record();
         }
@@ -763,7 +763,8 @@ void RNHQS_ZB::da(double t,double *a1,double *a2,double *k,double *l)
     int i;
     double sigmai;
 
-    sigmai=sigma_*ri_*sin(omega_*t+M_PI*phi_);
+//    sigmai=sigma_*ri_*sin(omega_*t+M_PI*phi_);
+    sigmai=ri_*sin(omega_*t+M_PI*phi_);
 
     for (i=1;i<N_-1;i++)
     {
